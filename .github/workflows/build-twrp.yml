@@ -92,7 +92,7 @@ jobs:
               echo "::error::Required file not found: $path"
               echo "Current directory: $PWD"
               echo "Nearby source layout:"
-              find bootable -maxdepth 4 -type f \\( -name 'Decrypt.cpp' -o -name 'Android.mk' -o -name 'Android.bp' \\) 2>/dev/null | sort | head -200 || true
+              find bootable -maxdepth 4 -type f \( -name 'Decrypt.cpp' -o -name 'Android.mk' -o -name 'Android.bp' \) 2>/dev/null | sort | head -200 || true
               exit 1
             fi
           }
