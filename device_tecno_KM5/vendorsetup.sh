@@ -1,0 +1,2 @@
+add_lunch_combo twrp_KM5-eng
+add_lunch_combo twrp_KM5-userdebug
