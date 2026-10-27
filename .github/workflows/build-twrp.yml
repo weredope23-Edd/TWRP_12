@@ -82,14 +82,33 @@ jobs:
       # the manifest above, not part of the device tree.
       - name: Apply gatekeeper AIDL decrypt patch
         run: |
-          set -e
+          set -euo pipefail
           cd "${{ runner.temp }}/twrp"
-          test -f bootable/recovery/crypto/Decrypt.cpp
-          test -f bootable/recovery/crypto/Android.mk
-          test -f bootable/recovery/prebuilt/Android.mk
-          cp "$GITHUB_WORKSPACE/patches/Decrypt.cpp"        bootable/recovery/crypto/Decrypt.cpp
-          cp "$GITHUB_WORKSPACE/patches/crypto_Android.mk"  bootable/recovery/crypto/Android.mk
+
+          # Fail with an actionable message instead of a silent `test -f`.
+          require_file() {
+            local path="$1"
+            if [[ ! -f "$path" ]]; then
+              echo "::error::Required file not found: $path"
+              echo "Current directory: $PWD"
+              echo "Nearby source layout:"
+              find bootable -maxdepth 4 -type f \\( -name 'Decrypt.cpp' -o -name 'Android.mk' -o -name 'Android.bp' \\) 2>/dev/null | sort | head -200 || true
+              exit 1
+            fi
+          }
+
+          # Validate all inputs before modifying the synced TWRP source.
+          require_file bootable/recovery/crypto/Decrypt.cpp
+          require_file bootable/recovery/crypto/Android.mk
+          require_file bootable/recovery/prebuilt/Android.mk
+          require_file "$GITHUB_WORKSPACE/patches/Decrypt.cpp"
+          require_file "$GITHUB_WORKSPACE/patches/crypto_Android.mk"
+          require_file "$GITHUB_WORKSPACE/patches/prebuilt_Android.mk"
+
+          cp "$GITHUB_WORKSPACE/patches/Decrypt.cpp"         bootable/recovery/crypto/Decrypt.cpp
+          cp "$GITHUB_WORKSPACE/patches/crypto_Android.mk"   bootable/recovery/crypto/Android.mk
           cp "$GITHUB_WORKSPACE/patches/prebuilt_Android.mk" bootable/recovery/prebuilt/Android.mk
+
           echo "Patched files in place:"
           ls -la bootable/recovery/crypto/Decrypt.cpp bootable/recovery/crypto/Android.mk bootable/recovery/prebuilt/Android.mk
 
